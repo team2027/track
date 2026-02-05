@@ -13,8 +13,7 @@ import {
   Cell,
 } from "recharts";
 
-const TINYBIRD_TOKEN = process.env.NEXT_PUBLIC_TINYBIRD_TOKEN || "";
-const TINYBIRD_HOST = "https://api.us-east.aws.tinybird.co";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://ai-docs-analytics-api.theisease.workers.dev";
 
 interface SiteData {
   host: string;
@@ -26,7 +25,6 @@ interface SiteData {
 interface AgentData {
   agent_type: string;
   visits: number;
-  unique_pages: number;
 }
 
 interface PageData {
@@ -44,12 +42,9 @@ interface FeedItem {
 
 const COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#6366f1"];
 
-async function fetchPipe<T>(pipe: string, params: Record<string, string> = {}): Promise<T[]> {
-  const url = new URL(`${TINYBIRD_HOST}/v0/pipes/${pipe}.json`);
-  url.searchParams.set("token", TINYBIRD_TOKEN);
-  for (const [k, v] of Object.entries(params)) {
-    if (v) url.searchParams.set(k, v);
-  }
+async function queryAnalytics<T>(sql: string): Promise<T[]> {
+  const url = new URL(`${API_URL}/query`);
+  url.searchParams.set("sql", sql);
   const res = await fetch(url.toString());
   const json = await res.json();
   return json.data || [];
@@ -65,11 +60,31 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async (host: string) => {
-    const hostParam = host ? { host } : {};
+    const hostFilter = host ? `AND blob1 = '${host}'` : "";
+    
     const [agentsData, pagesData, feedData] = await Promise.all([
-      fetchPipe<AgentData>("agent_breakdown", hostParam),
-      fetchPipe<PageData>("top_pages", { limit: "10", ...hostParam }),
-      fetchPipe<FeedItem>("realtime_feed", { limit: "20", ...hostParam }),
+      queryAnalytics<AgentData>(`
+        SELECT blob3 as agent_type, SUM(_sample_interval) as visits
+        FROM ai_docs_visits
+        WHERE timestamp > NOW() - INTERVAL '7' DAY ${hostFilter}
+        GROUP BY agent_type
+        ORDER BY visits DESC
+      `),
+      queryAnalytics<PageData>(`
+        SELECT blob1 as host, blob2 as path, SUM(_sample_interval) as ai_visits
+        FROM ai_docs_visits
+        WHERE timestamp > NOW() - INTERVAL '7' DAY AND double1 = 1 ${hostFilter}
+        GROUP BY host, path
+        ORDER BY ai_visits DESC
+        LIMIT 10
+      `),
+      queryAnalytics<FeedItem>(`
+        SELECT timestamp, blob1 as host, blob2 as path, blob3 as agent_type
+        FROM ai_docs_visits
+        WHERE timestamp > NOW() - INTERVAL '1' DAY ${hostFilter}
+        ORDER BY timestamp DESC
+        LIMIT 20
+      `),
     ]);
     setAgents(agentsData);
     setPages(pagesData);
@@ -83,9 +98,24 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function init() {
-      const sitesData = await fetchPipe<SiteData>("events_by_site");
-      setAllSites(sitesData);
-      setSites(sitesData);
+      const sitesData = await queryAnalytics<{ host: string; ai_visits: string; human_visits: string }>(`
+        SELECT 
+          blob1 as host,
+          SUM(CASE WHEN double1 = 1 THEN _sample_interval ELSE 0 END) as ai_visits,
+          SUM(CASE WHEN double1 = 0 THEN _sample_interval ELSE 0 END) as human_visits
+        FROM ai_docs_visits
+        WHERE timestamp > NOW() - INTERVAL '7' DAY
+        GROUP BY host
+        ORDER BY ai_visits DESC
+      `);
+      const formatted: SiteData[] = sitesData.map((s) => ({
+        host: s.host,
+        ai_visits: Number(s.ai_visits),
+        human_visits: Number(s.human_visits),
+        ai_percentage: Math.round((Number(s.ai_visits) / (Number(s.ai_visits) + Number(s.human_visits))) * 100) || 0,
+      }));
+      setAllSites(formatted);
+      setSites(formatted);
       setLoading(false);
     }
     init();
@@ -221,7 +251,7 @@ export default function Dashboard() {
                   <span className="text-zinc-400 truncate">{f.path}</span>
                 </div>
                 <span className="text-zinc-500 text-xs">
-                  {f.timestamp.split(" ")[1]}
+                  {new Date(f.timestamp).toLocaleTimeString()}
                 </span>
               </div>
             ))}
