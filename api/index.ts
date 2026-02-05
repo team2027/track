@@ -2,8 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 
 type Env = {
-  TINYBIRD_TOKEN: string;
-  TINYBIRD_DATASOURCE?: string;
+  POSTHOG_API_KEY: string;
 };
 
 const app = new Hono<{ Bindings: Env }>();
@@ -37,33 +36,36 @@ app.post("/track", async (c) => {
   const userAgent = body.user_agent || body.ua || "";
   const isAI = body.is_ai !== undefined ? Boolean(body.is_ai) : detectIsAI(accept);
   const agentType = body.agent_type || detectAgentType(userAgent, isAI);
+  const host = body.host || "unknown";
+  const path = body.path || "/";
+
+  const distinctId = isAI ? `${host}:${agentType}` : `${host}:human`;
 
   const event = {
-    ts: body.ts || new Date().toISOString().slice(0, 19).replace("T", " "),
-    host: body.host || "unknown",
-    path: body.path || "/",
-    accept: "",
-    ua: isAI ? userAgent.slice(0, 500) : "",
-    country: body.country || "unknown",
-    city: "",
-    agent_type: agentType,
-    is_ai: isAI ? 1 : 0,
+    api_key: c.env.POSTHOG_API_KEY,
+    event: isAI ? "ai_docs_visit" : "docs_visit",
+    distinct_id: distinctId,
+    timestamp: new Date().toISOString(),
+    properties: {
+      host,
+      path,
+      agent_type: agentType,
+      is_ai: isAI,
+      country: body.country || "unknown",
+      user_agent: isAI ? userAgent.slice(0, 500) : "",
+    },
   };
 
-  const datasource = c.env.TINYBIRD_DATASOURCE || "ai_agent_events";
-  const endpoint = `https://api.us-east.aws.tinybird.co/v0/events?name=${datasource}`;
-
-  const response = await fetch(endpoint, {
+  const response = await fetch("https://us.i.posthog.com/i/v0/e/", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${c.env.TINYBIRD_TOKEN}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(event),
   });
 
   if (!response.ok) {
-    console.error("tinybird error:", await response.text());
+    console.error("posthog error:", await response.text());
     return c.json({ error: "failed to track" }, 500);
   }
 
