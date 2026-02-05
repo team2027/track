@@ -98,22 +98,30 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function init() {
-      const sitesData = await queryAnalytics<{ host: string; ai_visits: string; human_visits: string }>(`
-        SELECT 
-          blob1 as host,
-          SUM(CASE WHEN double1 = 1 THEN _sample_interval ELSE 0 END) as ai_visits,
-          SUM(CASE WHEN double1 = 0 THEN _sample_interval ELSE 0 END) as human_visits
+      const sitesData = await queryAnalytics<{ host: string; is_ai: number; visits: string }>(`
+        SELECT blob1 as host, double1 as is_ai, SUM(_sample_interval) as visits
         FROM ai_docs_visits
         WHERE timestamp > NOW() - INTERVAL '7' DAY
-        GROUP BY host
-        ORDER BY ai_visits DESC
+        GROUP BY host, is_ai
+        ORDER BY visits DESC
       `);
-      const formatted: SiteData[] = sitesData.map((s) => ({
-        host: s.host,
-        ai_visits: Number(s.ai_visits),
-        human_visits: Number(s.human_visits),
-        ai_percentage: Math.round((Number(s.ai_visits) / (Number(s.ai_visits) + Number(s.human_visits))) * 100) || 0,
+      const siteMap = new Map<string, { ai: number; human: number }>();
+      for (const row of sitesData) {
+        const existing = siteMap.get(row.host) || { ai: 0, human: 0 };
+        if (row.is_ai === 1) {
+          existing.ai = Number(row.visits);
+        } else {
+          existing.human = Number(row.visits);
+        }
+        siteMap.set(row.host, existing);
+      }
+      const formatted: SiteData[] = Array.from(siteMap.entries()).map(([host, data]) => ({
+        host,
+        ai_visits: data.ai,
+        human_visits: data.human,
+        ai_percentage: Math.round((data.ai / (data.ai + data.human)) * 100) || 0,
       }));
+      formatted.sort((a, b) => b.ai_visits - a.ai_visits);
       setAllSites(formatted);
       setSites(formatted);
       setLoading(false);
