@@ -1,0 +1,17 @@
+DESCRIPTION >
+    Raw events from AI coding agents visiting documentation sites
+
+SCHEMA >
+    `timestamp` DateTime `json:$.ts`,
+    `host` String `json:$.host`,
+    `path` String `json:$.path`,
+    `accept_header` String `json:$.accept`,
+    `user_agent` String `json:$.ua`,
+    `country` String `json:$.country`,
+    `city` String `json:$.city`,
+    `agent_type` String `json:$.agent_type`,
+    `is_ai_agent` UInt8 `json:$.is_ai`
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "host, timestamp"

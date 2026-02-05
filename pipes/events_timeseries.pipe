@@ -1,0 +1,18 @@
+DESCRIPTION >
+    Time series of AI vs human visits
+
+NODE events_timeseries_node
+SQL >
+    SELECT
+        toStartOfHour(timestamp) as hour,
+        host,
+        countIf(is_ai_agent = 1) as ai_visits,
+        countIf(is_ai_agent = 0) as human_visits
+    FROM ai_agent_events
+    WHERE 
+        timestamp >= now() - interval {{Int32(days, 7)}} day
+        AND ({{String(host, '')}} = '' OR host = {{String(host, '')}})
+    GROUP BY hour, host
+    ORDER BY hour DESC
+
+TYPE endpoint

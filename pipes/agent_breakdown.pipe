@@ -1,0 +1,20 @@
+DESCRIPTION >
+    Breakdown of AI agent types (Claude, Cursor, etc)
+
+NODE agent_breakdown_node
+SQL >
+    SELECT
+        agent_type,
+        count() as visits,
+        uniq(host) as unique_sites,
+        uniq(path) as unique_pages,
+        groupArrayDistinct(host) as sites
+    FROM ai_agent_events
+    WHERE 
+        timestamp >= now() - interval {{Int32(days, 7)}} day
+        AND is_ai_agent = 1
+        AND ({{String(host, '')}} = '' OR host = {{String(host, '')}})
+    GROUP BY agent_type
+    ORDER BY visits DESC
+
+TYPE endpoint

@@ -1,0 +1,21 @@
+DESCRIPTION >
+    Real-time feed of recent AI agent visits
+
+NODE realtime_feed_node
+SQL >
+    SELECT
+        timestamp,
+        host,
+        path,
+        agent_type,
+        user_agent,
+        country,
+        city
+    FROM ai_agent_events
+    WHERE 
+        is_ai_agent = 1
+        AND ({{String(host, '')}} = '' OR host = {{String(host, '')}})
+    ORDER BY timestamp DESC
+    LIMIT {{Int32(limit, 100)}}
+
+TYPE endpoint

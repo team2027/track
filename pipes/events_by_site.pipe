@@ -1,0 +1,19 @@
+DESCRIPTION >
+    Get event counts grouped by site (host)
+
+NODE events_by_site_node
+SQL >
+    SELECT
+        host,
+        countIf(is_ai_agent = 1) as ai_visits,
+        countIf(is_ai_agent = 0) as human_visits,
+        count() as total_visits,
+        round(countIf(is_ai_agent = 1) * 100.0 / count(), 2) as ai_percentage,
+        min(timestamp) as first_seen,
+        max(timestamp) as last_seen
+    FROM ai_agent_events
+    WHERE timestamp >= now() - interval {{Int32(days, 7)}} day
+    GROUP BY host
+    ORDER BY ai_visits DESC
+
+TYPE endpoint

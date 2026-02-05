@@ -1,0 +1,21 @@
+DESCRIPTION >
+    Top pages visited by AI agents
+
+NODE top_pages_node
+SQL >
+    SELECT
+        host,
+        path,
+        countIf(is_ai_agent = 1) as ai_visits,
+        countIf(is_ai_agent = 0) as human_visits,
+        count() as total_visits,
+        groupArrayDistinct(agent_type) as agent_types
+    FROM ai_agent_events
+    WHERE 
+        timestamp >= now() - interval {{Int32(days, 7)}} day
+        AND ({{String(host, '')}} = '' OR host = {{String(host, '')}})
+    GROUP BY host, path
+    ORDER BY ai_visits DESC
+    LIMIT {{Int32(limit, 50)}}
+
+TYPE endpoint
