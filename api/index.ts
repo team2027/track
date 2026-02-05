@@ -79,24 +79,9 @@ function detectBotName(ua: string): string {
 function classify(userAgent: string, acceptHeader: string, host: string): Classification {
   const ua = userAgent.toLowerCase();
   const accept = acceptHeader.toLowerCase();
+  const wantsMarkdown = accept.includes("text/markdown");
 
-  // 1. Check for bots/crawlers first
-  if (BOT_PATTERNS.some(pattern => ua.includes(pattern))) {
-    return { category: "bot", agent: detectBotName(ua), filtered: true };
-  }
-
-  // 2. Check for browsing agents (AI agents that browse like humans)
-  if (ua.includes("chatgpt-user")) {
-    return { category: "browsing-agent", agent: "chatgpt-user", filtered: true };
-  }
-  if (ua.includes("claude/1.0") || (ua.includes("claude") && ua.includes("compatible"))) {
-    return { category: "browsing-agent", agent: "claude-computer-use", filtered: true };
-  }
-  if (ua.includes("perplexity-user")) {
-    return { category: "browsing-agent", agent: "perplexity-comet", filtered: true };
-  }
-
-  // 3. Check for coding agents (explicit detection)
+  // 1. Explicit coding agents (by user-agent)
   if (ua.includes("claude-code") || ua.includes("claudecode")) {
     return { category: "coding-agent", agent: "claude-code", filtered: false };
   }
@@ -107,12 +92,28 @@ function classify(userAgent: string, acceptHeader: string, host: string): Classi
     return { category: "coding-agent", agent: "opencode", filtered: false };
   }
 
-  // 4. Fallback: Accept: text/markdown = unknown coding agent
-  if (accept.includes("text/markdown")) {
+  // 2. Browsing agents (by user-agent)
+  if (ua.includes("chatgpt-user")) {
+    return { category: "browsing-agent", agent: "chatgpt-user", filtered: true };
+  }
+  if (ua.includes("claude/1.0") || (ua.includes("claude") && ua.includes("compatible"))) {
+    return { category: "browsing-agent", agent: "claude-computer-use", filtered: true };
+  }
+  if (ua.includes("perplexity-user")) {
+    return { category: "browsing-agent", agent: "perplexity-comet", filtered: true };
+  }
+
+  // 3. Accept: text/markdown = coding agent (catches axios, node-fetch used by coding tools)
+  if (wantsMarkdown) {
     return { category: "coding-agent", agent: "unknown-coding-agent", filtered: false };
   }
 
-  // 5. Filter preview hosts for humans
+  // 4. Bots/crawlers (only if NOT requesting markdown)
+  if (BOT_PATTERNS.some(pattern => ua.includes(pattern))) {
+    return { category: "bot", agent: detectBotName(ua), filtered: true };
+  }
+
+  // 5. Filter preview hosts
   if (PREVIEW_HOST_PATTERNS.some(pattern => host.toLowerCase().includes(pattern))) {
     return { category: "human", agent: "browser", filtered: true };
   }
