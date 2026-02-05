@@ -23,7 +23,7 @@ function getEndpoint(): string | null {
   return env || DEFAULT_ENDPOINT;
 }
 
-function shouldTrack(accept: string): boolean {
+function isPageView(accept: string): boolean {
   const a = accept.toLowerCase();
   return a.includes("text/html") || a.includes("text/markdown");
 }
@@ -34,7 +34,7 @@ export async function trackVisit(options: TrackOptions): Promise<TrackResult> {
     return { ok: true, skipped: "disabled" };
   }
 
-  if (!shouldTrack(options.accept)) {
+  if (!isPageView(options.accept)) {
     return { ok: true, skipped: "not-page-view" };
   }
 
