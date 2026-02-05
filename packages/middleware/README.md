@@ -1,18 +1,18 @@
-# @ai-docs/analytics-middleware
+# 2027-track
 
 Track AI coding agents (Claude Code, Codex, OpenCode) visiting your documentation.
 
 ## Installation
 
 ```bash
-npm install @ai-docs/analytics-middleware
+npm install 2027-track
 ```
 
 ## Usage with Next.js
 
 ```ts
 // middleware.ts
-import { withAIAnalytics } from "@ai-docs/analytics-middleware/next";
+import { withAIAnalytics } from "2027-track/next";
 
 export default withAIAnalytics();
 
@@ -23,7 +23,7 @@ export default withAIAnalytics(yourExistingMiddleware);
 ## Usage (generic)
 
 ```ts
-import { trackVisit } from "@ai-docs/analytics-middleware";
+import { trackVisit } from "2027-track";
 
 await trackVisit({
   host: "docs.example.com",

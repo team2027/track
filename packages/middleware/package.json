@@ -1,7 +1,12 @@
 {
-  "name": "@ai-docs/analytics-middleware",
+  "name": "2027-track",
   "version": "0.1.0",
   "description": "Track AI coding agents visiting your documentation",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/caffeinum/ai-docs-analytics"
+  },
+  "homepage": "https://github.com/caffeinum/ai-docs-analytics#readme",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
