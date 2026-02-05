@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   BarChart,
   Bar,
@@ -48,7 +48,7 @@ async function fetchPipe<T>(pipe: string, params: Record<string, string> = {}): 
   const url = new URL(`${TINYBIRD_HOST}/v0/pipes/${pipe}.json`);
   url.searchParams.set("token", TINYBIRD_TOKEN);
   for (const [k, v] of Object.entries(params)) {
-    url.searchParams.set(k, v);
+    if (v) url.searchParams.set(k, v);
   }
   const res = await fetch(url.toString());
   const json = await res.json();
@@ -56,30 +56,47 @@ async function fetchPipe<T>(pipe: string, params: Record<string, string> = {}): 
 }
 
 export default function Dashboard() {
+  const [allSites, setAllSites] = useState<SiteData[]>([]);
+  const [selectedHost, setSelectedHost] = useState<string>("");
   const [sites, setSites] = useState<SiteData[]>([]);
   const [agents, setAgents] = useState<AgentData[]>([]);
   const [pages, setPages] = useState<PageData[]>([]);
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const loadData = useCallback(async (host: string) => {
+    const hostParam = host ? { host } : {};
+    const [agentsData, pagesData, feedData] = await Promise.all([
+      fetchPipe<AgentData>("agent_breakdown", hostParam),
+      fetchPipe<PageData>("top_pages", { limit: "10", ...hostParam }),
+      fetchPipe<FeedItem>("realtime_feed", { limit: "20", ...hostParam }),
+    ]);
+    setAgents(agentsData);
+    setPages(pagesData);
+    setFeed(feedData);
+    if (host) {
+      setSites(allSites.filter((s) => s.host === host));
+    } else {
+      setSites(allSites);
+    }
+  }, [allSites]);
+
   useEffect(() => {
-    async function load() {
-      const [sitesData, agentsData, pagesData, feedData] = await Promise.all([
-        fetchPipe<SiteData>("events_by_site"),
-        fetchPipe<AgentData>("agent_breakdown"),
-        fetchPipe<PageData>("top_pages", { limit: "10" }),
-        fetchPipe<FeedItem>("realtime_feed", { limit: "20" }),
-      ]);
+    async function init() {
+      const sitesData = await fetchPipe<SiteData>("events_by_site");
+      setAllSites(sitesData);
       setSites(sitesData);
-      setAgents(agentsData);
-      setPages(pagesData);
-      setFeed(feedData);
       setLoading(false);
     }
-    load();
-    const interval = setInterval(load, 10000);
-    return () => clearInterval(interval);
+    init();
   }, []);
+
+  useEffect(() => {
+    if (allSites.length === 0) return;
+    loadData(selectedHost);
+    const interval = setInterval(() => loadData(selectedHost), 10000);
+    return () => clearInterval(interval);
+  }, [selectedHost, allSites, loadData]);
 
   if (loading) {
     return (
@@ -94,7 +111,21 @@ export default function Dashboard() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">AI Docs Analytics</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">AI Docs Analytics</h1>
+        <select
+          value={selectedHost}
+          onChange={(e) => setSelectedHost(e.target.value)}
+          className="bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">All Sites</option>
+          {allSites.map((s) => (
+            <option key={s.host} value={s.host}>
+              {s.host}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-zinc-900 rounded-lg p-6">
