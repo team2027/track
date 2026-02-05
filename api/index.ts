@@ -45,6 +45,7 @@ app.post("/track", async (c) => {
     agent_type: agentType,
     is_ai: isAI ? 1 : 0,
     ua: isAI ? userAgent.slice(0, 500) : "",
+    country: body.country || "unknown",
   };
 
   const datasource = c.env.TINYBIRD_DATASOURCE || "ai_agent_events";
