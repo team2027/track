@@ -167,6 +167,21 @@ app.post("/track", async (c) => {
   return c.json({ ok: true, category, agent, filtered: filtered || undefined });
 });
 
+app.get("/detect", (c) => {
+  const userAgent = c.req.header("user-agent") || "";
+  const accept = c.req.header("accept") || "";
+  const host = c.req.header("host") || "unknown";
+
+  const { category, agent, filtered } = classify(userAgent, accept, host);
+
+  return c.json({
+    category,
+    agent,
+    filtered: filtered || undefined,
+    headers: { user_agent: userAgent, accept },
+  });
+});
+
 const ALLOWED_QUERIES: Record<string, string> = {
   // Default: visits by host and category (excluding filtered)
   default: `
