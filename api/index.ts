@@ -24,6 +24,7 @@ const BOT_PATTERNS = [
   "slurp", "facebookexternalhit", "linkedinbot", "twitterbot",
   "applebot", "semrushbot", "ahrefsbot", "mj12bot", "dotbot",
   "petalbot", "bytespider", "gptbot", "claudebot", "anthropic-ai",
+  "chatgpt-user", "ccbot", "cohere-ai",
   "pingdom", "uptimerobot", "statuscake", "site24x7", "newrelic",
   "datadog", "checkly", "freshping",
   "vercel-healthcheck", "vercel-edge-functions",
