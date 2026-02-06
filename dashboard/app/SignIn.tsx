@@ -25,13 +25,16 @@ export function SignIn() {
   if (sent) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-8">
-        <div className="bg-zinc-900 rounded-lg p-8 max-w-md w-full text-center">
-          <div className="text-4xl mb-4">✉️</div>
-          <h2 className="text-xl font-semibold mb-2">check your email</h2>
-          <p className="text-zinc-400">
-            we sent a magic link to <span className="text-zinc-200">{email}</span>
+        <div className="card-2027 rounded-lg p-10 max-w-md w-full text-center">
+          <div className="text-5xl mb-6">✉️</div>
+          <h2 className="text-2xl font-medium mb-3" style={{ color: 'var(--cream)' }}>
+            check your email
+          </h2>
+          <p style={{ color: 'var(--cream-dim)' }}>
+            we sent a magic link to{' '}
+            <span style={{ color: 'var(--cream)' }}>{email}</span>
           </p>
-          <p className="text-zinc-500 text-sm mt-4">
+          <p className="text-sm mt-6" style={{ color: 'var(--cream-dark)' }}>
             click the link to sign in. you can close this tab.
           </p>
         </div>
@@ -41,30 +44,39 @@ export function SignIn() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8">
-      <div className="bg-zinc-900 rounded-lg p-8 max-w-md w-full">
-        <h1 className="text-2xl font-bold mb-2">AI Docs Analytics</h1>
-        <p className="text-zinc-400 mb-6">
+      <div className="card-2027 rounded-lg p-10 max-w-md w-full">
+        <h1 className="text-3xl font-medium mb-3" style={{ color: 'var(--cream)' }}>
+          AI Docs Analytics
+        </h1>
+        <p className="mb-8" style={{ color: 'var(--cream-dim)' }}>
           sign in with your work email to see analytics for your domain
         </p>
         <form onSubmit={handleSubmit}>
+          <label 
+            htmlFor="email" 
+            className="label-style block mb-2"
+          >
+            Email
+          </label>
           <input
+            id="email"
             type="email"
             name="email"
             placeholder="you@company.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-zinc-200 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+            className="input-2027 w-full rounded-lg px-4 py-3 mb-6"
           />
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-700 text-white font-medium py-3 rounded-lg transition-colors"
+            className="btn-glow w-full py-3 rounded-lg text-lg disabled:opacity-50"
           >
             {loading ? "sending..." : "send magic link"}
           </button>
         </form>
-        <p className="text-zinc-500 text-sm mt-6 text-center">
+        <p className="text-sm mt-8 text-center" style={{ color: 'var(--cream-dark)' }}>
           you'll automatically see data for domains matching your email
         </p>
       </div>

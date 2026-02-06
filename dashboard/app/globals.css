@@ -1,7 +1,188 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --black: #000000;
+  --cream: #f5f0e8;
+  --cream-dim: #a8a49c;
+  --cream-dark: #3d3b37;
+  --card-bg: #0a0a09;
+}
+
 body {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  background: var(--black);
+  color: var(--cream);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Grain overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* Perspective grid background */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.04;
+  background-image: 
+    linear-gradient(var(--cream-dark) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cream-dark) 1px, transparent 1px);
+  background-size: 60px 60px;
+  transform: perspective(500px) rotateX(60deg);
+  transform-origin: center top;
+}
+
+/* Label styling */
+.label-style {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--cream-dim);
+}
+
+/* Glowing button */
+.btn-glow {
+  position: relative;
+  background: var(--cream);
+  color: var(--black);
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: var(--cream);
+  border-radius: inherit;
+  filter: blur(12px);
+  opacity: 0.4;
+  z-index: -1;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.btn-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.4) 45%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 55%
+  );
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-glow:hover::after {
+  opacity: 1;
+  animation: shimmer 0.6s ease forwards;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Input styling */
+.input-2027 {
+  background: transparent;
+  border: 1px solid var(--cream-dark);
+  color: var(--cream);
+  font-family: 'Source Serif 4', Georgia, serif;
+}
+
+.input-2027::placeholder {
+  color: var(--cream-dim);
+}
+
+.input-2027:focus {
+  outline: none;
+  border-color: var(--cream-dim);
+  box-shadow: 0 0 0 1px var(--cream-dark);
+}
+
+/* Select styling */
+.select-2027 {
+  background: transparent;
+  border: 1px solid var(--cream-dark);
+  color: var(--cream);
+  font-family: 'Source Serif 4', Georgia, serif;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a8a49c' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.select-2027:focus {
+  outline: none;
+  border-color: var(--cream-dim);
+}
+
+/* Card styling */
+.card-2027 {
+  background: var(--card-bg);
+  border: 1px solid var(--cream-dark);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cream-dark);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cream-dim);
 }
