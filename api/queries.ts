@@ -81,7 +81,8 @@ export async function runQuery(
 
   let sql = baseSql;
   if (host) {
-    sql = sql.replace("WHERE ", `WHERE blob1 = '${host.replace(/'/g, "''")}' AND `);
+    const safeHost = host.replace(/'/g, "''");
+    sql = sql.replace("WHERE ", `WHERE (blob1 = '${safeHost}' OR blob1 LIKE '%.${safeHost}') AND `);
   }
 
   const response = await fetch(
