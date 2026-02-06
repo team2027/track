@@ -6,6 +6,7 @@ import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
 const API_URL = "https://ai-docs-analytics-api.theisease.workers.dev";
+const API_SECRET = process.env.API_SECRET;
 
 export const query = action({
   args: {
@@ -44,7 +45,9 @@ export const query = action({
         const url = new URL(`${API_URL}/query`);
         url.searchParams.set("q", args.queryName);
         url.searchParams.set("host", host);
-        const res = await fetch(url.toString());
+        const res = await fetch(url.toString(), {
+          headers: API_SECRET ? { "x-api-secret": API_SECRET } : {},
+        });
         const json = await res.json();
         return (json.data as unknown[]) || [];
       })

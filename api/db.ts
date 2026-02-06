@@ -11,6 +11,7 @@ export interface Env {
   VISITS: AnalyticsEngineDataset;
   CF_ACCOUNT_ID?: string;
   CF_API_TOKEN?: string;
+  API_SECRET?: string;
 }
 
 // RAW_EVENTS schema (immutable):

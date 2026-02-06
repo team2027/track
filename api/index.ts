@@ -46,6 +46,13 @@ app.get("/detect", (c) => {
 });
 
 app.get("/query", async (c) => {
+  const apiSecret = c.env.API_SECRET;
+  const authHeader = c.req.header("x-api-secret");
+
+  if (apiSecret && authHeader !== apiSecret) {
+    return c.json({ error: "unauthorized" }, 401);
+  }
+
   const accountId = c.env.CF_ACCOUNT_ID;
   const apiToken = c.env.CF_API_TOKEN;
 
