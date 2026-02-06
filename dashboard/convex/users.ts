@@ -1,4 +1,5 @@
-import { query } from "./_generated/server";
+import { query, internalQuery } from "./_generated/server";
+import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
 export const currentUser = query({
@@ -50,6 +51,31 @@ export const getAllowedHosts = query({
     
     hosts.push(...extraDomains.map((d) => d.host));
     
+    return hosts;
+  },
+});
+
+export const internal_getAllowedHosts = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) return [];
+
+    const emailDomain = user.email?.split("@")[1];
+    const hosts: string[] = [];
+
+    if (emailDomain) {
+      hosts.push(emailDomain);
+    }
+
+    const extraDomains = await ctx.db
+      .query("domains")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .filter((q) => q.neq(q.field("verifiedAt"), undefined))
+      .collect();
+
+    hosts.push(...extraDomains.map((d) => d.host));
+
     return hosts;
   },
 });
