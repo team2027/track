@@ -1,44 +1,16 @@
 # 2027-track
 
-Track AI coding agents (Claude Code, Codex, OpenCode) visiting your documentation.
+**Know who's using your product: humans or agents**
 
-## Installation
+Lightweight middleware to detect and track AI coding agents visiting your docs.
+
+## Install
 
 ```bash
 npm install 2027-track
 ```
 
-## Usage with Next.js
-
-```ts
-// middleware.ts
-import { withAIAnalytics } from "2027-track/next";
-
-export default withAIAnalytics();
-
-// Or wrap your existing middleware:
-export default withAIAnalytics(yourExistingMiddleware);
-```
-
-## Usage (generic)
-
-```ts
-import { trackVisit } from "2027-track";
-
-await trackVisit({
-  host: "docs.example.com",
-  path: "/api/getting-started",
-  userAgent: request.headers.get("user-agent"),
-  accept: request.headers.get("accept"),
-  country: "US", // optional
-});
-```
-
-## Route Filtering
-
-**Important:** Only track public documentation routes. Exclude private endpoints to avoid leaking sensitive paths.
-
-### Next.js matcher (recommended)
+## Next.js
 
 ```ts
 // middleware.ts
@@ -47,45 +19,58 @@ import { withAIAnalytics } from "2027-track/next";
 export default withAIAnalytics();
 
 export const config = {
-  matcher: [
-    // Exclude private routes, track everything else
-    "/((?!api|_next|app|admin|dashboard|auth|login|signup).*)",
-  ],
+  matcher: ["/((?!api|_next|admin|auth).*)",],
 };
 ```
 
-### Manual filtering
+Or wrap existing middleware:
+
+```ts
+export default withAIAnalytics(yourMiddleware);
+```
+
+## Generic Usage
 
 ```ts
 import { trackVisit } from "2027-track";
 
-// Only track if path starts with /docs
-if (path.startsWith("/docs")) {
-  await trackVisit({ host, path, userAgent, accept });
-}
+await trackVisit({
+  host: "docs.example.com",
+  path: "/getting-started",
+  userAgent: request.headers.get("user-agent"),
+  accept: request.headers.get("accept"),
+});
 ```
 
 ## Configuration
 
-### Kill switch
+```bash
+# Disable tracking
+AI_ANALYTICS_ENDPOINT=""
 
-Set `AI_ANALYTICS_ENDPOINT=""` to disable tracking entirely.
-
-### Custom endpoint
-
-Set `AI_ANALYTICS_ENDPOINT` to your own endpoint URL.
+# Self-host (optional)
+AI_ANALYTICS_ENDPOINT="https://your-api.workers.dev/track"
+```
 
 ## Privacy
 
-- Events are sent **server-side** from Vercel Edge (or your server)
-- Visitor IP addresses **never reach** the analytics endpoint
-- Only headers (user-agent, accept) and page info (host, path) are sent
-- **No cookies, no fingerprinting, no personal identifiers**
-
-This middleware collects no personally identifiable information (PII). Because there are no cookies, no IP forwarding, and no user identifiers, it generally does not trigger privacy policy or cookie-consent requirements under GDPR, CCPA, or similar regulations. That said, you should verify with your own legal counsel, especially under strict EU interpretations.
+- Events sent **server-side** — visitor IPs never reach the analytics endpoint
+- No cookies, no fingerprinting, no PII
+- Fully open source — [audit the code](https://github.com/team2027/track)
 
 ## Detection
 
-Agent classification (user-agent and accept header matching) happens server-side at the analytics endpoint — the middleware only forwards raw headers.
+| Agent | Signal |
+|-------|--------|
+| Claude Code | `axios` + `text/markdown` |
+| OpenCode | `text/markdown` with `q=` weights |
+| Codex | `ChatGPT-User` user-agent |
 
-Dashboard: https://ai-docs-analytics.vercel.app
+## Links
+
+- [GitHub](https://github.com/team2027/track)
+- [Test your agent](https://ai-docs-analytics-api.theisease.workers.dev/detect)
+
+## License
+
+MIT
