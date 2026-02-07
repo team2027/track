@@ -66,6 +66,7 @@ export default function Dashboard() {
   const [pages, setPages] = useState<PageData[]>([]);
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [switching, setSwitching] = useState(false);
 
   const loadData = useCallback(
     async (host: string) => {
@@ -85,6 +86,7 @@ export default function Dashboard() {
       } else {
         setSites(allSites);
       }
+      setSwitching(false);
     },
     [allSites, queryAnalytics]
   );
@@ -183,7 +185,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-4">
           <select
             value={selectedHost}
-            onChange={(e) => setSelectedHost(e.target.value)}
+            onChange={(e) => { setSwitching(true); setSelectedHost(e.target.value); }}
             className="select-2027 rounded-lg px-4 py-2"
           >
             <option value="">All Sites</option>
@@ -216,6 +218,14 @@ export default function Dashboard() {
           showing data for: {allowedHosts.join(", ")}
         </div>
       ) : null}
+
+      <div className="relative">
+        {switching && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(4px)' }}>
+            <div style={{ color: 'var(--cream-dim)' }}>loading...</div>
+          </div>
+        )}
+        <div style={{ transition: 'filter 0.2s ease', filter: switching ? 'blur(2px)' : 'none' }}>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="card-2027 rounded-lg p-6">
@@ -370,6 +380,8 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
         </div>
       </div>
     </div>
