@@ -49,6 +49,15 @@ export const config = {
 };
 ```
 
+Cloudflare Pages:
+
+```ts
+// functions/_middleware.ts
+import { onRequest as withAIAnalytics } from "2027-track/cloudflare";
+
+export const onRequest = withAIAnalytics();
+```
+
 That's it. AI agent visits are now tracked.
 
 ## How It Works
@@ -134,7 +143,8 @@ track/
 │   └── src/
 │       ├── index.ts      # Core tracking
 │       ├── next.ts       # Next.js wrapper
-│       └── vercel.ts     # Vercel edge middleware wrapper
+│       ├── vercel.ts     # Vercel edge middleware wrapper
+│       └── cloudflare.ts # Cloudflare Pages/Workers wrapper
 └── dashboard/            # Analytics UI
 ```
 

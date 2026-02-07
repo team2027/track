@@ -73,6 +73,37 @@ export default function middleware(request: Request, context: { waitUntil: (prom
 }
 ```
 
+## Cloudflare Pages
+
+```ts
+// functions/_middleware.ts
+import { onRequest as withAIAnalytics } from "2027-track/cloudflare";
+
+export const onRequest = withAIAnalytics();
+```
+
+Or wrap existing middleware:
+
+```ts
+export const onRequest = withAIAnalytics(yourHandler);
+```
+
+## Cloudflare Workers
+
+```ts
+import { withAIAnalytics } from "2027-track/cloudflare";
+
+const handler = {
+  async fetch(request, env, ctx) {
+    return new Response("Hello");
+  },
+};
+
+export default {
+  fetch: withAIAnalytics(handler.fetch),
+};
+```
+
 ## Generic Usage
 
 ```ts
