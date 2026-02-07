@@ -4,6 +4,19 @@ interface VercelContext {
   waitUntil: (promise: Promise<unknown>) => void;
 }
 
+export function trackRequest(request: Request, waitUntil: (p: Promise<unknown>) => void) {
+  const url = new URL(request.url);
+  waitUntil(
+    trackVisit({
+      host: url.hostname,
+      path: url.pathname,
+      userAgent: request.headers.get("user-agent") || "",
+      accept: request.headers.get("accept") || "",
+      country: request.headers.get("x-vercel-ip-country") || undefined,
+    }).catch(() => {}),
+  );
+}
+
 export function withAIAnalytics(
   middleware?: (request: Request, context: VercelContext) => Response | undefined | Promise<Response | undefined>,
 ) {
@@ -12,16 +25,7 @@ export function withAIAnalytics(
       ? await middleware(request, context)
       : undefined;
 
-    const url = new URL(request.url);
-    context.waitUntil(
-      trackVisit({
-        host: url.hostname,
-        path: url.pathname,
-        userAgent: request.headers.get("user-agent") || "",
-        accept: request.headers.get("accept") || "",
-        country: request.headers.get("x-vercel-ip-country") || undefined,
-      }).catch(() => {}),
-    );
+    trackRequest(request, context.waitUntil.bind(context));
 
     return response;
   };

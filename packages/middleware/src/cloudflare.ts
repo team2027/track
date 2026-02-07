@@ -28,7 +28,7 @@ type CfFetchHandler = (
 
 type CfPagesHandler = (context: CfPagesContext) => Response | Promise<Response>;
 
-function track(request: CfRequest, waitUntil: (p: Promise<unknown>) => void) {
+export function trackRequest(request: CfRequest, waitUntil: (p: Promise<unknown>) => void) {
   const url = new URL(request.url);
   waitUntil(
     trackVisit({
@@ -43,7 +43,7 @@ function track(request: CfRequest, waitUntil: (p: Promise<unknown>) => void) {
 
 export function withAIAnalytics(handler: CfFetchHandler): CfFetchHandler {
   return async (request, env, ctx) => {
-    track(request, ctx.waitUntil.bind(ctx));
+    trackRequest(request, ctx.waitUntil.bind(ctx));
     return handler(request, env, ctx);
   };
 }
@@ -52,7 +52,7 @@ export function onRequest(
   handler?: CfPagesHandler,
 ): CfPagesHandler {
   return async (context) => {
-    track(context.request, context.waitUntil.bind(context));
+    trackRequest(context.request, context.waitUntil.bind(context));
     if (handler) return handler(context);
     return context.next();
   };
