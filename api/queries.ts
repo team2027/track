@@ -1,3 +1,22 @@
+export const PUBLIC_QUERIES: Record<string, string> = {
+  "stats-24h": `
+    SELECT
+      COUNT(DISTINCT blob1) as sites,
+      SUM(IF(blob3 = 'coding-agent', _sample_interval, 0)) as ai,
+      SUM(IF(blob3 = 'human', _sample_interval, 0)) as human
+    FROM ai_docs_visits
+    WHERE timestamp > NOW() - INTERVAL '1' DAY AND double1 = 0
+  `,
+  "stats-7d": `
+    SELECT
+      COUNT(DISTINCT blob1) as sites,
+      SUM(IF(blob3 = 'coding-agent', _sample_interval, 0)) as ai,
+      SUM(IF(blob3 = 'human', _sample_interval, 0)) as human
+    FROM ai_docs_visits
+    WHERE timestamp > NOW() - INTERVAL '7' DAY AND double1 = 0
+  `,
+};
+
 export const QUERIES: Record<string, string> = {
   default: `
     SELECT blob1 as host, blob3 as category, blob4 as agent, SUM(_sample_interval) as visits
@@ -81,9 +100,10 @@ export async function runQuery(
   queryName: string,
   host?: string
 ): Promise<{ data?: unknown; error?: string }> {
-  const baseSql = QUERIES[queryName];
+  const ALL_QUERIES = { ...PUBLIC_QUERIES, ...QUERIES };
+  const baseSql = ALL_QUERIES[queryName];
   if (!baseSql) {
-    return { error: `invalid query, allowed: ${Object.keys(QUERIES).join(", ")}` };
+    return { error: `invalid query, allowed: ${Object.keys(ALL_QUERIES).join(", ")}` };
   }
 
   let sql = baseSql;

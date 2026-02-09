@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuthActions } from "@convex-dev/auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function SignIn() {
   const { signIn } = useAuthActions();
@@ -9,6 +9,17 @@ export function SignIn() {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [stats, setStats] = useState<{
+    "24h": { sites: number; ai: number; human: number };
+    "7d": { sites: number; ai: number; human: number };
+  } | null>(null);
+
+  useEffect(() => {
+    fetch("https://ai-docs-analytics-api.theisease.workers.dev/stats")
+      .then((r) => r.json())
+      .then((d) => setStats(d))
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,10 +64,52 @@ export function SignIn() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8">
-      <h1 className="text-4xl font-medium mb-12" style={{ color: 'var(--cream)' }}>
+      <h1 className="text-4xl font-medium mb-8" style={{ color: 'var(--cream)' }}>
         AI Docs Analytics
       </h1>
-      
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '2.5rem',
+          flexWrap: 'wrap',
+          marginBottom: '2.5rem',
+          paddingBottom: '2rem',
+          borderBottom: '1px solid rgba(255,248,235,0.08)',
+          maxWidth: '56rem',
+          width: '100%',
+        }}
+      >
+        {[
+          { label: 'sites tracked', value: stats ? stats["7d"].sites.toLocaleString() : null },
+          { label: 'visits 24h', value: stats ? (stats["24h"].ai + stats["24h"].human).toLocaleString() : null },
+          { label: 'ai visits 24h', value: stats ? stats["24h"].ai.toLocaleString() : null },
+          { label: 'visits 7d', value: stats ? (stats["7d"].ai + stats["7d"].human).toLocaleString() : null },
+          { label: 'ai visits 7d', value: stats ? stats["7d"].ai.toLocaleString() : null },
+        ].map((stat) => (
+          <div key={stat.label} style={{ textAlign: 'center', minWidth: '5rem' }}>
+            <div
+              className="label-style"
+              style={{ fontSize: '0.65rem', marginBottom: '0.35rem', letterSpacing: '0.08em' }}
+            >
+              {stat.label}
+            </div>
+            <div
+              style={{
+                color: stat.value ? 'var(--cream)' : 'var(--cream-dark)',
+                fontSize: '1.35rem',
+                fontWeight: 500,
+                fontVariantNumeric: 'tabular-nums',
+                transition: 'color 0.3s ease',
+              }}
+            >
+              {stat.value ?? '\u2014'}
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full">
         <div className="card-2027 rounded-lg p-8">
           <span className="label-style">Step 1</span>

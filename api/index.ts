@@ -70,6 +70,36 @@ app.get("/query", async (c) => {
   return c.json(result);
 });
 
+app.get("/stats", async (c) => {
+  const accountId = c.env.CF_ACCOUNT_ID;
+  const apiToken = c.env.CF_API_TOKEN;
+
+  if (!accountId || !apiToken) {
+    return c.json({ error: "missing CF_ACCOUNT_ID or CF_API_TOKEN" }, 500);
+  }
+
+  const [result24h, result7d] = await Promise.all([
+    runQuery(accountId, apiToken, "stats-24h"),
+    runQuery(accountId, apiToken, "stats-7d"),
+  ]);
+
+  const row24h = ((result24h.data as Record<string, string>[]) ?? [])[0];
+  const row7d = ((result7d.data as Record<string, string>[]) ?? [])[0];
+
+  return c.json({
+    "24h": {
+      sites: Number(row24h?.sites ?? 0),
+      ai: Number(row24h?.ai ?? 0),
+      human: Number(row24h?.human ?? 0),
+    },
+    "7d": {
+      sites: Number(row7d?.sites ?? 0),
+      ai: Number(row7d?.ai ?? 0),
+      human: Number(row7d?.human ?? 0),
+    },
+  });
+});
+
 app.get("/health", (c) => c.json({ ok: true }));
 
 export default app;
