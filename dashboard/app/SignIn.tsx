@@ -83,10 +83,8 @@ export function SignIn() {
       >
         {[
           { label: 'sites tracked', value: stats ? stats["7d"].sites.toLocaleString() : null },
-          { label: 'visits 24h', value: stats ? (stats["24h"].ai + stats["24h"].human).toLocaleString() : null },
-          { label: 'ai visits 24h', value: stats ? stats["24h"].ai.toLocaleString() : null },
-          { label: 'visits 7d', value: stats ? (stats["7d"].ai + stats["7d"].human).toLocaleString() : null },
-          { label: 'ai visits 7d', value: stats ? stats["7d"].ai.toLocaleString() : null },
+          { label: 'total visits', value: stats ? (stats["7d"].ai + stats["7d"].human).toLocaleString() : null },
+          { label: 'ai traffic', value: stats ? `${Math.round((stats["7d"].ai / (stats["7d"].ai + stats["7d"].human)) * 100)}%` : null },
         ].map((stat) => (
           <div key={stat.label} style={{ textAlign: 'center', minWidth: '5rem' }}>
             <div
