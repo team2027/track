@@ -64,6 +64,20 @@ export const onRequest = withAIAnalytics();
 
 That's it. AI agent visits are now tracked.
 
+## One-Click Deploy (Framer, static sites, any Cloudflare-proxied domain)
+
+No npm install needed. Deploy a lightweight Cloudflare Worker that sits in front of your site and tracks AI agent visits automatically.
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/team2027/track/tree/main/workers/tracker)
+
+After deploying:
+
+1. In Cloudflare DNS, make sure your domain is proxied (orange cloud)
+2. Add a [Worker Route](https://developers.cloudflare.com/workers/configuration/routing/routes/) matching your domain (e.g. `yourdomain.com/*`)
+3. Done — all requests pass through the tracker to your origin
+
+This is perfect for sites that don't support middleware (Framer, Carrd, static HTML, etc.).
+
 ## How It Works
 
 AI coding agents (Claude Code, Codex, OpenCode) send `Accept: text/markdown` when fetching docs — browsers never do. We detect this signal and classify the visitor.
@@ -139,10 +153,14 @@ AI_ANALYTICS_ENDPOINT=""
 
 ```
 track/
-├── api/                  # Cloudflare Worker
+├── api/                  # Cloudflare Worker (analytics API)
 │   ├── detect.ts         # Classification logic
 │   ├── index.ts          # API routes
 │   └── wrangler.toml     # CF config
+├── workers/tracker/      # One-click deployable proxy tracker
+│   ├── index.ts          # Passthrough proxy + tracking
+│   ├── wrangler.toml     # CF config
+│   └── package.json
 ├── packages/middleware/  # npm package (2027-track)
 │   └── src/
 │       ├── index.ts      # Core tracking

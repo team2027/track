@@ -1,0 +1,7 @@
+name = "2027-tracker"
+main = "index.ts"
+compatibility_date = "2024-01-01"
+
+# Optional: override the analytics endpoint
+# [vars]
+# AI_ANALYTICS_ENDPOINT = "https://your-custom-endpoint.workers.dev/track"
