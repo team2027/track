@@ -104,6 +104,16 @@ export default {
 };
 ```
 
+## Express / Node.js
+
+```ts
+import express from "express";
+import { withAIAnalytics } from "2027-track/express";
+
+const app = express();
+app.use(withAIAnalytics());
+```
+
 ## Generic Usage
 
 ```ts

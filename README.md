@@ -62,6 +62,16 @@ import { onRequest as withAIAnalytics } from "2027-track/cloudflare";
 export const onRequest = withAIAnalytics();
 ```
 
+Express / Node.js:
+
+```ts
+import express from "express";
+import { withAIAnalytics } from "2027-track/express";
+
+const app = express();
+app.use(withAIAnalytics());
+```
+
 That's it. AI agent visits are now tracked.
 
 ## One-Click Deploy (Framer, static sites, any Cloudflare-proxied domain)
@@ -166,7 +176,8 @@ track/
 │       ├── index.ts      # Core tracking
 │       ├── next.ts       # Next.js wrapper
 │       ├── vercel.ts     # Vercel edge middleware wrapper
-│       └── cloudflare.ts # Cloudflare Pages/Workers wrapper
+│       ├── cloudflare.ts # Cloudflare Pages/Workers wrapper
+│       └── express.ts    # Express/Node.js middleware
 └── dashboard/            # Analytics UI
 ```
 

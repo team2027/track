@@ -1,6 +1,6 @@
 {
   "name": "2027-track",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Track AI coding agents visiting your documentation",
   "repository": {
     "type": "git",
@@ -30,14 +30,19 @@
       "types": "./dist/cloudflare.d.ts",
       "import": "./dist/cloudflare.mjs",
       "require": "./dist/cloudflare.js"
+    },
+    "./express": {
+      "types": "./dist/express.d.ts",
+      "import": "./dist/express.mjs",
+      "require": "./dist/express.js"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/next.ts src/vercel.ts src/cloudflare.ts --format cjs,esm --dts",
-    "dev": "tsup src/index.ts src/next.ts src/vercel.ts src/cloudflare.ts --format cjs,esm --dts --watch"
+    "build": "tsup src/index.ts src/next.ts src/vercel.ts src/cloudflare.ts src/express.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts src/next.ts src/vercel.ts src/cloudflare.ts src/express.ts --format cjs,esm --dts --watch"
   },
   "keywords": [
     "ai",
@@ -47,6 +52,7 @@
     "vercel",
     "cloudflare",
     "workers",
+    "express",
     "claude",
     "codex",
     "opencode"
