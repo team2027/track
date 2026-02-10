@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useAction, useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../convex/_generated/api";
@@ -61,6 +61,19 @@ function isTestHost(host: string): boolean {
   );
 }
 
+function getRootDomain(host: string): string {
+  const withoutPort = host.split(":")[0];
+  const parts = withoutPort.split(".");
+  if (parts.length <= 2) return withoutPort;
+  return parts.slice(-2).join(".");
+}
+
+interface DomainGroup {
+  root: string;
+  hosts: string[];
+  totalAI: number;
+}
+
 export default function Dashboard() {
   const user = useQuery(api.users.currentUser);
   const allowedHosts = useQuery(api.users.getAllowedHosts);
@@ -78,29 +91,55 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [switching, setSwitching] = useState(false);
 
+  const domainGroups = useMemo(() => {
+    const groups = new Map<string, DomainGroup>();
+    for (const site of allSites) {
+      if (isTestHost(site.host)) continue;
+      const root = getRootDomain(site.host);
+      const existing = groups.get(root) || { root, hosts: [], totalAI: 0 };
+      existing.hosts.push(site.host);
+      existing.totalAI += site.ai_visits;
+      groups.set(root, existing);
+    }
+    return Array.from(groups.values()).sort((a, b) => b.totalAI - a.totalAI);
+  }, [allSites]);
+
   const loadData = useCallback(
-    async (host: string) => {
+    async (rootDomain: string) => {
+      const group = domainGroups.find((g) => g.root === rootDomain);
+      const hostsInGroup = group?.hosts ?? [];
+      const isSingleHost = hostsInGroup.length === 1;
+      const apiHost = isSingleHost ? hostsInGroup[0] : undefined;
+      const matchesRoot = (h: string) => hostsInGroup.includes(h);
+
       const [agentsResult, pagesResult, feedResult] = await Promise.all([
-        queryAnalytics({ queryName: "agents", host: host || undefined }),
-        queryAnalytics({ queryName: "pages", host: host || undefined }),
-        queryAnalytics({ queryName: "feed", host: host || undefined }),
+        queryAnalytics({ queryName: "agents", host: apiHost }),
+        queryAnalytics({ queryName: "pages", host: apiHost }),
+        queryAnalytics({ queryName: "feed", host: apiHost }),
       ]);
+
       const agentsData = (agentsResult?.data ?? []) as AgentData[];
-      const pagesData = (pagesResult?.data ?? []) as PageData[];
-      const feedData = (feedResult?.data ?? []) as FeedItem[];
-      setAgents(agentsData);
-      setPages(pagesData);
-      setFeed(feedData);
-      if (host) {
-        setSites(allSites.filter((s) => s.host === host));
-        setSites24h(allSites24h.filter((s) => s.host === host));
+      let pagesData = (pagesResult?.data ?? []) as PageData[];
+      let feedData = (feedResult?.data ?? []) as FeedItem[];
+
+      if (rootDomain) {
+        if (!isSingleHost) {
+          pagesData = pagesData.filter((p) => matchesRoot(p.host));
+          feedData = feedData.filter((f) => matchesRoot(f.host));
+        }
+        setSites(allSites.filter((s) => matchesRoot(s.host)));
+        setSites24h(allSites24h.filter((s) => matchesRoot(s.host)));
       } else {
         setSites(allSites);
         setSites24h(allSites24h);
       }
+
+      setAgents(agentsData);
+      setPages(pagesData);
+      setFeed(feedData);
       setSwitching(false);
     },
-    [allSites, allSites24h, queryAnalytics]
+    [allSites, allSites24h, domainGroups, queryAnalytics]
   );
 
   useEffect(() => {
@@ -229,13 +268,11 @@ export default function Dashboard() {
             className="select-2027 rounded-lg px-4 py-2"
           >
             <option value="">All Sites</option>
-            {allSites
-              .filter((s) => !isTestHost(s.host))
-              .map((s) => (
-                <option key={s.host} value={s.host}>
-                  {s.host}
-                </option>
-              ))}
+            {domainGroups.map((g) => (
+              <option key={g.root} value={g.root}>
+                {g.root}{g.hosts.length > 1 ? ` (${g.hosts.length})` : ""}
+              </option>
+            ))}
           </select>
           <div className="flex items-center gap-3 text-sm">
             <span style={{ color: 'var(--cream-dim)' }}>{user.email}</span>
