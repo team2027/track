@@ -49,15 +49,28 @@ app.get("/detect", (c) => {
   const userAgent = c.req.header("user-agent") || "";
   const accept = c.req.header("accept") || "";
   const host = c.req.header("host") || "unknown";
+  const full = c.req.query("full") !== undefined;
 
   const { category, agent, filtered } = classify(userAgent, accept, host);
 
-  return c.json({
+  const response: Record<string, unknown> = {
     category,
     agent,
     filtered: filtered || undefined,
     headers: { user_agent: userAgent, accept },
-  });
+  };
+
+  if (full) {
+    response.ip = c.req.header("cf-connecting-ip") || c.req.header("x-forwarded-for") || "unknown";
+    response.country = c.req.header("cf-ipcountry") || "unknown";
+    const allHeaders: Record<string, string> = {};
+    c.req.raw.headers.forEach((value, key) => {
+      allHeaders[key] = value;
+    });
+    response.all_headers = allHeaders;
+  }
+
+  return c.json(response);
 });
 
 app.get("/query", async (c) => {
