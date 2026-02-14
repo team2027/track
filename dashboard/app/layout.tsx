@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ConvexAuthNextjsServerProvider>
+    <ConvexAuthNextjsServerProvider apiRoute="/app/api/auth">
       <html lang="en">
         <body className="min-h-screen">
           <ConvexClientProvider>{children}</ConvexClientProvider>

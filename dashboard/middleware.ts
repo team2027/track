@@ -1,6 +1,8 @@
 import { convexAuthNextjsMiddleware } from "@convex-dev/auth/nextjs/server";
 
-export default convexAuthNextjsMiddleware();
+export default convexAuthNextjsMiddleware(undefined, {
+  apiRoute: "/app/api/auth",
+});
 
 export const config = {
   matcher: [
