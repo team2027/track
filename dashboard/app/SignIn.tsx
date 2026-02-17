@@ -43,9 +43,9 @@ export function SignIn() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8">
-      <div className="card-2027 rounded-lg p-8 max-w-md w-full">
+      <div className="card-2027 rounded-lg p-8 max-w-md w-full text-center">
         <h2 className="text-2xl font-medium mb-6" style={{ color: 'var(--cream)' }}>
-          Log in to see results
+          Log in
         </h2>
 
         <form onSubmit={handleSubmit}>
