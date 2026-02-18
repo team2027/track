@@ -3,7 +3,7 @@ import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 
 export const metadata = {
-  title: "AI Docs Analytics",
+  title: "Agent Tracker - Dashboard",
   description: "Track AI coding agent traffic on your documentation",
 };
 
